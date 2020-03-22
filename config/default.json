@@ -1,3 +1,4 @@
 {
-    "mongoURI": "mongodb+srv://spring20:luthao123@cluster0-v85hi.mongodb.net/test?retryWrites=true&w=majority"
+    "mongoURI": "mongodb+srv://spring20:luthao123@cluster0-v85hi.mongodb.net/test?retryWrites=true&w=majority",
+    "jwtSecret": "maytheforcebewithyou"
 }
