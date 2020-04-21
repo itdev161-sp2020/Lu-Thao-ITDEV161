@@ -6,6 +6,7 @@ import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import config from 'config';
 import User from './models/User';
+import auth from './middleware/auth';
 //initialize express application
 const app = express();
 
@@ -70,27 +71,74 @@ app.post(
                 //save to db and return
                 await user.save();
 
-                const payload ={
-                    user:{
-                        id: user.id 
-                    }
-                };
-
-                jwt.sign(
-                    payload,
-                    config.get('jwtSecret'),
-                    {expiresIn: '10hr'},
-                    (err, token) => {
-                        if(err) throw err;
-                        res.json({token: token});
-                    }
-                );
+                //generate and return a jwt token
+                returnToken(user,res);
             }catch(error){
                 res.status(500).send('Server error');
             }
         }
     }
 );
+
+/**
+ * @route Get api/auth
+ * @desc Authenticate user
+ */
+app.get(
+    '/api/auth',
+    [
+        check('email', 'Please enter a valid email').isEmail(),
+        check('password','A password is required').exists()
+    ],
+    async (req, res)=>{
+        const errors = validationResult(req);
+        if(!errors.isEmpty()){
+            return res.status(422).json({error:errors.array()});
+        }else{
+            const {email,password }=req.body;
+            try{
+                //check if user exists
+                let user = await User.findOne({email:email});
+                if(!user){
+                    return res
+                    .status(400)
+                    .json({errors:[{msg:'Invalid email or password'}]});
+                }
+
+                //check password
+                const match =await bcrypt.compare(password,user.password);
+                if(!match){
+                    return res
+                    .status(400)
+                    .json({errors:[{msg:'Invalid email or password'}]});
+                }
+                //generate and return a jwt token
+                returnToken(user,res);
+            }catch(error){
+                res.status(500).send('Server error');
+            }
+        } 
+    }
+);
+
+const returnToken = (user,res) => {
+    const payload = {
+        user:{
+            id:user.id 
+        }
+    };
+
+    jwt.sign(
+        payload,
+        config.get('jwtSecret'),
+        {expiresIn:'10hr'},
+        (err,token)=>{
+            if(err)throw err;
+            res.json({token:token});
+        }
+    );
+};
+
 // connection listener
 const port =5000;
 app.listen(port, () => console.log(`Express server running on port ${port}`));
