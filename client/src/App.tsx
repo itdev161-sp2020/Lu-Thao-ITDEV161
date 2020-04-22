@@ -88,7 +88,7 @@ class App extends React.Component {
             <Route exact path="/">
               {user ?
                 <React.Fragment>
-                  <div>Hello{user}!</div>
+                  <div>Hello {user}!</div>
                   <div>{data}</div>
                 </React.Fragment>:
                 <React.Fragment>

@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import axios from 'axios';
 import { useHistory } from 'react-router-dom';
 
-const Register = (authenticateUser) =>{
+const Register = ({authenticateUser}) =>{
   let history = useHistory();
     const [userData, setUserData] = useState({
         name: '',
@@ -20,8 +20,8 @@ const Register = (authenticateUser) =>{
         setUserData({
             ...userData,
             [name]:value
-        })
-    }
+        });
+    };
 
     const register = async () => {
         if(password !== passwordConfirm){
@@ -32,14 +32,14 @@ const Register = (authenticateUser) =>{
                 name:name,
                 email:email,
                 password:password 
-            }
+            };
 
             try {
                 const config ={
                     headers:{
                         'Content-Type':'application/json'
                     }
-                }
+                };
 
                 const body = JSON.stringify(newUser);
                 const res = await axios.post('http://localhost:5000/api/users',body,config);
@@ -54,11 +54,11 @@ const Register = (authenticateUser) =>{
               setErrorData({
                 ...errors,
                 errors:error.response.data.errors 
-              })
+              });
             }
             authenticateUser();
         }
-    }
+    };
 
     return (
       <div>
@@ -107,7 +107,7 @@ const Register = (authenticateUser) =>{
           <div key={error.msg}>{error.msg}</div>)}
         </div>
       </div>
-    )
-}
+    );
+};
 
 export default Register 
