@@ -153,54 +153,67 @@ const returnToken = (user,res) => {
     );
 };
 
-// post endpoints
+// Post endpoints
 /**
  * @route POST api/posts
  * @desc Create post
  */
+app.post(
+  '/api/posts',
+  [
+    auth,
+    [
+      check('title', 'Title text is required')
+        .not()
+        .isEmpty(),
+      check('body', 'Body text is required')
+        .not()
+        .isEmpty()
+    ]
+  ],
+  async (req, res) => {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      res.status(400).json({ errors: errors.array() });
+    } else {
+      const { title, body } = req.body;
+      try {
+        // Get the user who created the post
+        const user = await User.findById(req.user.id);
 
- app.post(
-     '/api/posts',
-     [
-         auth,
-         [
-             check('title','Title text is required')
-             .not()
-             .isEmpty,
-             check('body','Body text is required')
-             .not()
-             .isEmpty()
-         ]
-     ],
-     async (req, res)=>{
-         const errors = validationResult(req);
-         if(!errors.isEmpty()){
-             res.status(400).json({ error:errors.array()});
-         }else{
-             const { title, body } = req.body;
-             try{
-                 // get the user who created the post
-                 const user = await User.findById(req.user.id);
+        // Create a new post
+        const post = new Post({
+          user: user.id,
+          title: title,
+          body: body
+        });
 
-                 //create n new post
-                const post = new Post({
-                    user:user.id,
-                    title:title,
-                    body:body
-                });
+        // Save to the db and return
+        await post.save();
 
-                //save to the db and return
-                await post.save();
+        res.json(post);
+      } catch (error) {
+        console.error(error);
+        res.status(500).send('Server error');
+      }
+    }
+  }
+);
 
-                res.json(post);
-                
-             }catch(error){
-                 console.error(error);
-                 res.status(500).send('Server error');
-             }
-         }
-     }
- );
+/**
+ * @route GET api/posts
+ * @desc Get posts
+ */
+app.get('/api/posts',auth,async(req,res)=>{
+  try{
+      const posts = await Post.find().sort({date:-1});
+
+      res.json(post);
+  }catch(error){
+      console.error(error);
+      res.status(500).send('Server error');
+  }
+});
 // connection listener
 const port =5000;
 app.listen(port, () => console.log(`Express server running on port ${port}`));
